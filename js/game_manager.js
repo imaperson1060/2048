@@ -138,8 +138,6 @@ GameManager.prototype.setUndo = function (gameState) {
 
 // Save all tile positions and remove merger info
 GameManager.prototype.prepareTiles = function () {
-	this.setUndo();
-
 	this.grid.eachCell(function (x, y, tile) {
 		if (tile) {
 			tile.mergedFrom = null;
