@@ -67,6 +67,7 @@ h1.title {
 .scores-container {
 	float: right;
 	text-align: right;
+	user-select: none;
 }
 
 .score-container,
@@ -714,6 +715,7 @@ hr {
 	display: block;
 	text-align: center;
 	float: right;
+	user-select: none;
 }
 
 .game-explanation {
