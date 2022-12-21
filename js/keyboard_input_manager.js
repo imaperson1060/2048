@@ -35,6 +35,7 @@ KeyboardInputManager.prototype.listen = function () {
 	var self = this;
 
 	var map = {
+		8: 4, // Backspace
 		38: 0, // Up
 		39: 1, // Right
 		40: 2, // Down
@@ -69,6 +70,7 @@ KeyboardInputManager.prototype.listen = function () {
 	});
 
 	// Respond to button presses
+	this.bindButtonPress(".undo-button", this.undo);
 	this.bindButtonPress(".retry-button", this.restart);
 	this.bindButtonPress(".restart-button", this.restart);
 	this.bindButtonPress(".keep-playing-button", this.keepPlaying);
@@ -125,6 +127,11 @@ KeyboardInputManager.prototype.listen = function () {
 			self.emit("move", absDx > absDy ? (dx > 0 ? 1 : 3) : (dy > 0 ? 2 : 0));
 		}
 	});
+}
+
+KeyboardInputManager.prototype.undo = function (event) {
+	event.preventDefault();
+	this.emit("undo");
 }
 
 KeyboardInputManager.prototype.restart = function (event) {

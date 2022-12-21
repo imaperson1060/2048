@@ -7,9 +7,28 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
 	this.startTiles = 2;
 
 	this.inputManager.on("move", this.move.bind(this));
+	this.inputManager.on("undo", this.undo.bind(this));
 	this.inputManager.on("restart", this.restart.bind(this));
 	this.inputManager.on("keepPlaying", this.keepPlaying.bind(this));
 
+	this.setup();
+}
+
+// Undo the last move
+GameManager.prototype.undo = function () {
+	if (!this.undoPosition) return;
+
+	// Reload the game from the last undo position
+	this.grid = new Grid(this.undoPosition.grid.size,
+		this.undoPosition.grid.cells);
+	this.score = this.undoPosition.score;
+	this.over = this.undoPosition.over;
+	this.won = this.undoPosition.won;
+	this.keepPlaying = this.undoPosition.keepPlaying;
+	this.undoPosition = undefined;
+	this.storageManager.setGameState(this.serialize());
+
+	// Redraw the game
 	this.setup();
 }
 
@@ -43,12 +62,14 @@ GameManager.prototype.setup = function () {
 		this.over = previousState.over;
 		this.won = previousState.won;
 		this.keepPlaying = previousState.keepPlaying;
+		this.undoPosition = previousState.undo;
 	} else {
 		this.grid = new Grid(this.size);
 		this.score = 0;
 		this.over = false;
 		this.won = false;
 		this.keepPlaying = false;
+		this.undoPosition = this.serialize();
 
 		// Add the initial tiles
 		this.addStartTiles();
@@ -104,12 +125,21 @@ GameManager.prototype.serialize = function () {
 		score: this.score,
 		over: this.over,
 		won: this.won,
-		keepPlaying: this.keepPlaying
+		keepPlaying: this.keepPlaying,
+		undo: this.undoPosition
 	};
+}
+
+// Save the current board and score as an undo position
+GameManager.prototype.setUndo = function () {
+	this.undoPosition = this.serialize();
+	this.actuate();
 }
 
 // Save all tile positions and remove merger info
 GameManager.prototype.prepareTiles = function () {
+	this.setUndo();
+
 	this.grid.eachCell(function (x, y, tile) {
 		if (tile) {
 			tile.mergedFrom = null;
@@ -127,8 +157,10 @@ GameManager.prototype.moveTile = function (tile, cell) {
 
 // Move tiles on the grid in the specified direction
 GameManager.prototype.move = function (direction) {
-	// 0: up, 1: right, 2: down, 3: left
+	// 0: up, 1: right, 2: down, 3: left, 4: undo
 	var self = this;
+
+	if (direction == 4) return self.undo(); // Reset the board if backspace is pressed
 
 	if (this.isGameTerminated()) return; // Don't do anything if the game's over
 
