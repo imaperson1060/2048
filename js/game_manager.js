@@ -131,8 +131,8 @@ GameManager.prototype.serialize = function () {
 }
 
 // Save the current board and score as an undo position
-GameManager.prototype.setUndo = function () {
-	this.undoPosition = this.serialize();
+GameManager.prototype.setUndo = function (gameState) {
+	this.undoPosition = gameState;
 	this.actuate();
 }
 
@@ -173,6 +173,9 @@ GameManager.prototype.move = function (direction) {
 	// Save the current tile positions and remove merger information
 	this.prepareTiles();
 
+	// Store a temporary undo state
+	var gameState = self.serialize();
+
 	// Traverse the grid in the right direction and move tiles
 	traversals.x.forEach(function (x) {
 		traversals.y.forEach(function (y) {
@@ -211,6 +214,8 @@ GameManager.prototype.move = function (direction) {
 	});
 
 	if (moved) {
+		this.setUndo(gameState); // Save the undo state
+
 		this.addRandomTile();
 
 		if (!this.movesAvailable()) {
